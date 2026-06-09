@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>David vs La Ira</title>
+<style>
+body{
+    margin:0;
+    background:#4CAF50;
+    font-family:Arial,sans-serif;
+    text-align:center;
+}
+h1{
+    color:#fff;
+}
+canvas{
+    background:#87CEEB;
+    border:5px solid #FFD700;
+    margin-top:10px;
+}
+</style>
+</head>
+<body>
+
+<h1>David combate la Ira</h1>
+<p>⬅️➡️ Moverse | Recoge ❤️ y evita 🔥</p>
+
+<canvas id="game" width="600" height="350"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+let puntos = 0;
+let gameOver = false;
+
+const david = {
+    x: 280,
+    y: 260,
+    w: 40,
+    h: 60,
+    speed: 6
+};
+
+const corazones = [];
+const iras = [];
+
+function crearCorazon(){
+    corazones.push({
+        x: Math.random()*560,
+        y: -20,
+        size: 20
+    });
+}
+
+function crearIra(){
+    iras.push({
+        x: Math.random()*560,
+        y: -20,
+        size: 25
+    });
+}
+
+setInterval(crearCorazon,1200);
+setInterval(crearIra,1000);
+
+const keys = {};
+
+document.addEventListener("keydown",e=>keys[e.key]=true);
+document.addEventListener("keyup",e=>keys[e.key]=false);
+
+function dibujarDavid(){
+    // túnica azul
+    ctx.fillStyle="#1565C0";
+    ctx.fillRect(david.x,david.y+20,40,40);
+
+    // cabeza color piel
+    ctx.fillStyle="#F5CBA7";
+    ctx.beginPath();
+    ctx.arc(david.x+20,david.y+10,12,0,Math.PI*2);
+    ctx.fill();
+
+    // cabello
+    ctx.fillStyle="#8B4513";
+    ctx.fillRect(david.x+8,david.y,24,6);
+}
+
+function colision(a,b){
+    return (
+        a.x < b.x+b.size &&
+        a.x+a.w > b.x &&
+        a.y < b.y+b.size &&
+        a.y+a.h > b.y
+    );
+}
+
+function actualizar(){
+
+    if(gameOver) return;
+
+    if(keys["ArrowLeft"]) david.x -= david.speed;
+    if(keys["ArrowRight"]) david.x += david.speed;
+
+    david.x = Math.max(0,Math.min(canvas.width-david.w,david.x));
+
+    corazones.forEach((c,i)=>{
+        c.y += 3;
+
+        if(colision(david,c)){
+            puntos++;
+            corazones.splice(i,1);
+        }
+    });
+
+    iras.forEach((f,i)=>{
+        f.y += 4;
+
+        if(colision(david,f)){
+            gameOver = true;
+        }
+    });
+}
+
+function dibujar(){
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    // suelo verde
+    ctx.fillStyle="#4CAF50";
+    ctx.fillRect(0,300,600,50);
+
+    dibujarDavid();
+
+    corazones.forEach(c=>{
+        ctx.font="20px Arial";
+        ctx.fillText("❤️",c.x,c.y);
+    });
+
+    iras.forEach(f=>{
+        ctx.font="22px Arial";
+        ctx.fillText("🔥",f.x,f.y);
+    });
+
+    ctx.fillStyle="#FFD700";
+    ctx.font="22px Arial";
+    ctx.fillText("Puntos: "+puntos,10,30);
+
+    if(gameOver){
+        ctx.fillStyle="red";
+        ctx.font="36px Arial";
+        ctx.fillText("La ira venció",180,150);
+
+        ctx.fillStyle="white";
+        ctx.font="24px Arial";
+        ctx.fillText("Puntaje: "+puntos,240,190);
+    }
+}
+
+function loop(){
+    actualizar();
+    dibujar();
+    requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+
+</body>
+</html>
